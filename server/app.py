@@ -1,6 +1,3 @@
-"""
-server/app.py — re-exports the FastAPI app from main.py and provides a main() entry point.
-"""
 from main import app  # noqa: F401
 import uvicorn
 
