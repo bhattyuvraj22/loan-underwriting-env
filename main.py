@@ -64,15 +64,12 @@ def reset(req: ResetRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/step", summary="Submit agent decisions")
-def step(action: AgentAction):
-    """
-    Submit decisions for all applicants.
-    Returns reward (0.0–1.0), done=True, and a detailed grader breakdown in info.
-    """
+@app.post("/reset", summary="Start a new episode")
+def reset(req: Optional[ResetRequest] = None):
+    req = req or ResetRequest()
     try:
-        result = sessions.step(action)
-        return result.model_dump()
+        obs = sessions.reset(req.task_id, req.seed or 42)
+        return obs.model_dump()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
