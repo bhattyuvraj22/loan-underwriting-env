@@ -1,0 +1,126 @@
+name: loan-underwriting-env
+version: "1.0.0"
+description: >
+  A real-world loan underwriting environment where an AI agent evaluates
+  mortgage applicants and makes approve/reject/escalate decisions with
+  interest rate assignment and risk flag identification.
+  Models the actual decision workflow used by mortgage underwriters.
+
+tags:
+  - openenv
+  - finance
+  - loan-underwriting
+  - real-world
+  - mortgage
+
+observation_space:
+  type: object
+  description: "JSON object returned by /reset and /state"
+  fields:
+    task_id: {type: string, description: "Active task identifier"}
+    step: {type: integer, description: "Current step number"}
+    max_steps: {type: integer, description: "Maximum steps per episode"}
+    done: {type: boolean, description: "True when episode has ended"}
+    message: {type: string, description: "Feedback from last step"}
+    context:
+      type: object
+      fields:
+        applicants:
+          type: array
+          description: "List of ApplicantProfile objects with financial data"
+          item_fields:
+            applicant_id: string
+            annual_income: float
+            monthly_debt: float
+            credit_score: integer
+            loan_amount: float
+            property_value: float
+            employment_years: float
+            employment_type: "salaried | self_employed | contract"
+            prior_default: boolean
+            fraud_flag: boolean
+            income_verified: boolean
+        policy: {type: string, description: "Underwriting rules for this task"}
+        capital_budget: {type: integer, description: "task_2 only: max total approved loan value"}
+        risk_cap: {type: integer, description: "task_2 only: max high-DTI approvals allowed"}
+
+action_space:
+  type: object
+  description: "JSON object posted to /step"
+  fields:
+    task_id: {type: string, description: "Must match active task"}
+    decisions:
+      type: array
+      description: "One decision per applicant in context.applicants"
+      item_fields:
+        applicant_id: {type: string, description: "Copy exactly from applicant data"}
+        decision: {type: "approve | reject | escalate"}
+        interest_rate: {type: "float | null", description: "Required when decision=approve; null otherwise"}
+        risk_flags:
+          type: array
+          description: "All applicable flags: high_dti, low_credit_score, high_ltv, short_employment, self_employed_income, prior_default, fraud_flag, unverified_income"
+        reasoning: {type: string, description: "Step-by-step justification"}
+
+reward_space:
+  type: float
+  range: [0.0, 1.0]
+  description: "Scalar reward per episode. Partial credit for each correct component."
+
+tasks:
+  - id: task_1_easy
+    name: Single Applicant Underwriting
+    difficulty: easy
+    description: >
+      Evaluate one applicant. Compute DTI and LTV, apply underwriting rules,
+      assign interest rate if approved, identify all risk flags.
+    max_steps: 1
+    reward_range: [0.0, 1.0]
+    scoring:
+      decision_correct: 0.50
+      interest_rate_accurate: 0.25
+      risk_flag_recall: 0.20
+      risk_flag_precision: 0.05
+
+  - id: task_2_medium
+    name: Batch Underwriting with Capital Constraints
+    difficulty: medium
+    description: >
+      Evaluate 6 applicants while respecting a capital budget and a high-DTI risk cap.
+      Maximise correct decisions without violating portfolio constraints.
+    max_steps: 1
+    reward_range: [0.0, 1.0]
+    scoring:
+      decision_accuracy: 0.40
+      budget_constraint: 0.25
+      risk_cap_constraint: 0.20
+      interest_rate_accuracy: 0.10
+      fraud_safety_bonus: 0.05
+
+  - id: task_3_hard
+    name: Edge Case Portfolio with Escalation
+    difficulty: hard
+    description: >
+      Evaluate 8 applicants including forced fraud flags, unverified-income thin files,
+      and borderline DTI cases. Requires precise escalation logic and thorough risk flagging.
+    max_steps: 1
+    reward_range: [0.0, 1.0]
+    scoring:
+      decision_accuracy: 0.30
+      escalation_f1: 0.30
+      flag_recall: 0.20
+      safety_no_false_approvals: 0.10
+      fraud_detection_bonus: 0.10
+
+endpoints:
+  reset: "POST /reset"
+  step:  "POST /step"
+  state: "GET /state"
+  tasks: "GET /tasks"
+  health: "GET /health"
+
+entry_point: "uvicorn main:app --host 0.0.0.0 --port 7860"
+
+runtime:
+  max_inference_minutes: 20
+  min_memory_gb: 2
+  min_cpus: 1
