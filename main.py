@@ -88,3 +88,10 @@ def state(task_id: str):
         return obs.model_dump()
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+def main():
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()

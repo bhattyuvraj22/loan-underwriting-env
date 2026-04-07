@@ -21,4 +21,4 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.backends.legacy:build"
 
 [project.scripts]
-server = "main:app"
+server = "main:main"
