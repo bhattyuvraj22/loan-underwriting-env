@@ -81,8 +81,8 @@ class StepResult(BaseModel):
 
 
 class ResetRequest(BaseModel):
-    task_id: str = Field(default="task_1_easy", description="Task identifier")
-    seed: Optional[int] = Field(default=42, description="Random seed for reproducibility")
+    task_id: str = "task_1_easy"  # ← default value
+    seed: Optional[int] = 42
 
 
 class TaskInfo(BaseModel):

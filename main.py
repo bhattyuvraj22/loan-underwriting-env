@@ -54,11 +54,8 @@ def list_tasks():
 
 
 @app.post("/reset", summary="Start a new episode")
-def reset(req: ResetRequest):
-    """
-    Start a new episode for the given task_id.
-    Returns an Observation containing all applicant data the agent needs.
-    """
+def reset(req: Optional[ResetRequest] = None):
+    req = req or ResetRequest()
     try:
         obs = sessions.reset(req.task_id, req.seed or 42)
         return obs.model_dump()
