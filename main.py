@@ -12,6 +12,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from env.models import AgentAction, ResetRequest
 from env.state import SessionManager
+from typing import Optional
+
 
 app = FastAPI(
     title="Loan Underwriting OpenEnv",
