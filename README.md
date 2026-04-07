@@ -1,14 +1,15 @@
 ---
-title: Loan Underwriting OpenEnv
+title: Loan Underwriting Env
 emoji: 🏦
 colorFrom: blue
 colorTo: green
 sdk: docker
-pinned: false
+app_port: 7860
 tags:
   - openenv
   - finance
-  - real-world
+  - loan-underwriting
+pinned: false
 ---
 
 # Loan Underwriting OpenEnv

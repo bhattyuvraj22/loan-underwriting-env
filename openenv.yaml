@@ -120,6 +120,10 @@ endpoints:
 
 entry_point: "uvicorn main:app --host 0.0.0.0 --port 7860"
 
+sdk: gradio   # Required for HF Spaces deployment
+sdk_version: "4.0"
+app_file: main.py
+
 runtime:
   max_inference_minutes: 20
   min_memory_gb: 2

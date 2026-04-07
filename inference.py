@@ -35,23 +35,12 @@ parser.add_argument("--seed", type=int, default=42, help="Random seed for episod
 args, _ = parser.parse_known_args()
 RUN_SEED: int = args.seed
 
-# ── Configuration from environment variables ───────────────────────────────────
-# Checklist: API_BASE_URL and MODEL_NAME have defaults; HF_TOKEN does NOT
-API_BASE_URL: str = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
-MODEL_NAME: str   = os.getenv("MODEL_NAME", "gpt-4o")
+#Environment Variables
+API_BASE_URL: str = os.getenv("API_BASE_URL", "https://api.groq.com/openai/v1")
+MODEL_NAME: str   = os.getenv("MODEL_NAME", "llama-3.3-70b-versatile")
+HF_TOKEN = os.getenv("HF_TOKEN")
+LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 ENV_URL: str      = os.getenv("ENV_URL", "http://localhost:7860")
-
-# Checklist: HF_TOKEN must NOT have a default — raise immediately if missing
-HF_TOKEN: str = os.getenv("HF_TOKEN", "")
-if not HF_TOKEN:
-    raise EnvironmentError(
-        "\n[ERROR] HF_TOKEN is not set. This variable is required and has no default.\n"
-        "  export HF_TOKEN=your_api_key_or_hf_token\n"
-        "Note: Do NOT set a default value for HF_TOKEN per competition checklist."
-    )
-
-# ── OpenAI-compatible client — uses HF_TOKEN as the API key ───────────────────
-# Checklist: All LLM calls use OpenAI client configured via these variables
 client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 # ── Competition scoring constants ──────────────────────────────────────────────
@@ -261,7 +250,14 @@ def run_task(task_id: str, rewards_list: List[float]) -> tuple:
 # ── Main entry point ───────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    if not HF_TOKEN:
+        raise EnvironmentError(
+            "\n[ERROR] HF_TOKEN is not set. Export your Groq API key as HF_TOKEN:\n"
+            "  export HF_TOKEN=gsk_your_groq_key_here\n"
+        )
+    
     tasks = ["task_1_easy", "task_2_medium", "task_3_hard"]
+
 
     print("=" * 65)
     print("  Loan Underwriting OpenEnv — Baseline Inference")
