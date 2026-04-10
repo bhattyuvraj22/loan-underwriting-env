@@ -1,13 +1,7 @@
 """
 FastAPI application for Loan Underwriting OpenEnv.
-Implements the full OpenEnv HTTP interface:
-  GET  /          → health check (required for HF Space ping)
-  GET  /health    → health check
-  GET  /tasks     → list all tasks
-  POST /reset     → start new episode, returns Observation
-  POST /step      → submit decisions, returns StepResult
-  GET  /state     → get current state without advancing episode
 """
+from typing import Optional
 from fastapi import FastAPI, HTTPException
 from env.models import AgentAction, ResetRequest
 from env.state import SessionManager
@@ -32,7 +26,7 @@ def root():
         "tasks": ["task_1_easy", "task_2_medium", "task_3_hard"],
         "endpoints": {
             "reset": "POST /reset",
-            "step": "POST /step",
+            "step":  "POST /step",
             "state": "GET /state",
             "tasks": "GET /tasks",
         },
@@ -50,11 +44,11 @@ def list_tasks():
 
 
 @app.post("/reset", summary="Start a new episode")
-def reset(req: ResetRequest):
+def reset(req: Optional[ResetRequest] = None):
     """
-    Start a new episode for the given task_id.
-    Returns an Observation containing all applicant data the agent needs.
+    Accepts an optional JSON body. If omitted, defaults to task_1_easy with seed=42.
     """
+    req = req or ResetRequest()
     try:
         obs = sessions.reset(req.task_id, req.seed or 42)
         return obs.model_dump()
@@ -66,7 +60,7 @@ def reset(req: ResetRequest):
 def step(action: AgentAction):
     """
     Submit decisions for all applicants.
-    Returns reward (0.0–1.0), done=True, and a detailed grader breakdown in info.
+    Returns reward (0.0-1.0), done=True, and a detailed grader breakdown in info.
     """
     try:
         result = sessions.step(action)
