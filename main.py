@@ -9,11 +9,8 @@ Implements the full OpenEnv HTTP interface:
   GET  /state     → get current state without advancing episode
 """
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
 from env.models import AgentAction, ResetRequest
 from env.state import SessionManager
-from typing import Optional
-
 
 app = FastAPI(
     title="Loan Underwriting OpenEnv",
@@ -26,7 +23,6 @@ app = FastAPI(
 sessions = SessionManager()
 
 
-# ── Root endpoint — required for HF Space automated ping (must return 200) ────
 @app.get("/", summary="Health check and environment info")
 def root():
     return {
@@ -53,20 +49,28 @@ def list_tasks():
     return sessions.list_tasks()
 
 
+@app.post("/reset", summary="Start a new episode")
+def reset(req: ResetRequest):
+    """
+    Start a new episode for the given task_id.
+    Returns an Observation containing all applicant data the agent needs.
+    """
+    try:
+        obs = sessions.reset(req.task_id, req.seed or 42)
+        return obs.model_dump()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.post("/step", summary="Submit agent decisions")
 def step(action: AgentAction):
     """
-    Submit decisions for all applicants in the current episode.
-    Returns reward, done=True, and detailed grader breakdown.
+    Submit decisions for all applicants.
+    Returns reward (0.0–1.0), done=True, and a detailed grader breakdown in info.
     """
     try:
         result = sessions.step(action)
-        return {
-            "observation": result.observation.model_dump(),
-            "reward": result.reward,
-            "done": result.done,
-            "info": result.info,
-        }
+        return result.model_dump()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -75,7 +79,6 @@ def step(action: AgentAction):
 def state(task_id: str):
     """
     Get the current state of an active episode without advancing it.
-    Useful for inspecting state between steps.
     """
     try:
         obs = sessions.get_state(task_id)
@@ -83,9 +86,11 @@ def state(task_id: str):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+
 def main():
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=7860)
+
 
 if __name__ == "__main__":
     main()
