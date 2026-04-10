@@ -63,8 +63,7 @@ action_space:
 
 reward_space:
   type: float
-  range: [0.0, 1.0]
-  description: "Scalar reward per episode. Partial credit for each correct component."
+  range: [0.001, 0.999]
 
 tasks:
   - id: task_1_easy
@@ -74,7 +73,7 @@ tasks:
       Evaluate one applicant. Compute DTI and LTV, apply underwriting rules,
       assign interest rate if approved, identify all risk flags.
     max_steps: 1
-    reward_range: [0.0, 1.0]
+    reward_range: [0.001, 0.999]
     scoring:
       decision_correct: 0.50
       interest_rate_accurate: 0.25
@@ -88,7 +87,7 @@ tasks:
       Evaluate 6 applicants while respecting a capital budget and a high-DTI risk cap.
       Maximise correct decisions without violating portfolio constraints.
     max_steps: 1
-    reward_range: [0.0, 1.0]
+    reward_range: [0.001, 0.999]
     scoring:
       decision_accuracy: 0.40
       budget_constraint: 0.25
@@ -103,7 +102,7 @@ tasks:
       Evaluate 8 applicants including forced fraud flags, unverified-income thin files,
       and borderline DTI cases. Requires precise escalation logic and thorough risk flagging.
     max_steps: 1
-    reward_range: [0.0, 1.0]
+    reward_range: [0.001, 0.999]
     scoring:
       decision_accuracy: 0.30
       escalation_f1: 0.30
