@@ -53,22 +53,20 @@ def list_tasks():
     return sessions.list_tasks()
 
 
-@app.post("/reset", summary="Start a new episode")
-def reset(req: Optional[ResetRequest] = None):
-    req = req or ResetRequest()
+@app.post("/step", summary="Submit agent decisions")
+def step(action: AgentAction):
+    """
+    Submit decisions for all applicants in the current episode.
+    Returns reward, done=True, and detailed grader breakdown.
+    """
     try:
-        obs = sessions.reset(req.task_id, req.seed or 42)
-        return obs.model_dump()
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.post("/reset", summary="Start a new episode")
-def reset(req: Optional[ResetRequest] = None):
-    req = req or ResetRequest()
-    try:
-        obs = sessions.reset(req.task_id, req.seed or 42)
-        return obs.model_dump()
+        result = sessions.step(action)
+        return {
+            "observation": result.observation.model_dump(),
+            "reward": result.reward,
+            "done": result.done,
+            "info": result.info,
+        }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

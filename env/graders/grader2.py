@@ -134,10 +134,8 @@ def grade(
     else:
         safety_score = 0.05  # no mandatory escalations in this episode
 
-    total = round(
-        min(decision_score + budget_score + risk_cap_score + interest_rate_score + safety_score, 1.0),
-        4,
-    )
+    raw_total = decision_score + budget_score + risk_cap_score + interest_rate_score + safety_score
+    total = round(max(0.001, min(0.999, raw_total)), 4)
 
     info = {
         "n_applicants": n_scored,

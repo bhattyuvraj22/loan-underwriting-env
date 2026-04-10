@@ -111,7 +111,8 @@ def grade(decisions: list[dict[str, Any]], ground_truths: list[dict]) -> tuple[f
     else:
         detection_score = 0.10  # no critical cases in this episode
 
-    total = round(min(decision_score + escalation_score + flag_score + safety_score + detection_score, 1.0), 4)
+    raw_total = decision_score + escalation_score + flag_score + safety_score + detection_score
+    total = round(max(0.001, min(0.999, raw_total)), 4)
 
     info = {
         "n_applicants": n_scored,
